@@ -1,0 +1,25 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ], // Alias for the src directory
+      "@components/*": [
+        "components/*"
+      ], // Alias for the components directory within src
+      "@utils/*": [
+        "utils/*"
+      ] // Alias for the utils directory within src
+    }
+  }
+}
