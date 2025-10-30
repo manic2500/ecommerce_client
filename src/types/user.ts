@@ -1,10 +1,3 @@
-
-
-export interface LoginResponse {
-    user: User
-    token: string
-}
-
 export interface User {
     id: string
     name: string
@@ -12,3 +5,9 @@ export interface User {
     roles: string[]
     permissions: string[]
 }
+
+export interface LoginUserResponse {
+    user: User
+    token: string
+}
+

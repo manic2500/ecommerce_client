@@ -1,59 +1,78 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
+import { handleFormError } from '@/lib/utils';
 import { useLoginMutation } from '@/redux/api/authApi';
 import { LoginSchema, type LoginFormData } from '@/schemas/auth.schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, /* useNavigate */ } from 'react-router-dom';
 
 
 function LoginPage() {
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
 
-    const [login, { data, isLoading, isSuccess, isError }] = useLoginMutation();
+    //const [login, { data, isLoading, isSuccess, isError }] = useLoginMutation();
+    const [login, { isLoading }] = useLoginMutation();
+    //const [login] = useLoginMutation();
 
-    // 2. Set up React Hook Form
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
+    //Set up React Hook Form
+    const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
         resolver: zodResolver(LoginSchema),
-        defaultValues: { email: 'mani@example.com', password: '123456' }
+        defaultValues: { email: 'mani1@example.com', password: '123456' }
     });
 
     const onSubmit = async (data: LoginFormData) => {
         console.log('Form Submitted:', data);
-        const response = await login(data).unwrap()
-        console.log(response.user);
-        navigate('/home')
+        try {
+            const response = await login(data).unwrap()
+            //navigate('/home')
+            console.log("✅ Login successful:", response);
+
+        } catch (err: unknown) {
+            // Handle server-side validation errors:            
+
+            handleFormError<LoginFormData>(err, setError, "root.serverError");
+
+            /* if (isErrorResponse(err)) {
+                setError("root.serverError", {
+                    type: "server",
+                    message: err.data.message,
+                });
+            } else if (err instanceof Error) {
+                setError("root.serverError", {
+                    type: "server",
+                    message: err.message,
+                });
+            } else {
+                setError("root.serverError", {
+                    type: "server",
+                    message: "Unexpected error occurred",
+                });
+            } */
+
+
+            /* const response = err as ErrorResponse;
+
+            if (response) {
+                setError("root.serverError", {
+                    type: "server",
+                    message: response.data.message,
+                });
+            }
+            else if (err instanceof Error) {
+                //console.error("❌ Error:", err.message);
+                setError("root.serverError", {
+                    type: "server",
+                    message: err.message,
+                });
+            } */
+
+        }
+
+
     };
 
-    console.log({ data, isLoading, isSuccess, isError });
-
-
-    /* const handleLogin = async (e: FormEvent) => {
-        e.preventDefault();
-        try {
-            const response = await login({ email, password }).unwrap()
-            console.log('✅ Login successful:', response)
-
-            // Save token to localStorage for future authenticated requests
-            localStorage.setItem('token', response.token)
-            navigate('/home');
-
-            // Optionally redirect user (using React Router, Next.js, etc.)
-            // navigate('/dashboard')
-        } catch (err) {
-            console.error('❌ Login failed:', err)
-        }        
-    }; */
-
-    /* try {
-            const res = await axiosClient.post('/auth/login', { email, password });
-            localStorage.setItem('token', res.data.token);
-            navigate('/home');
-        } catch (err: any) {
-            console.log(err);
-        } */
 
     return (
         <>
@@ -75,8 +94,12 @@ function LoginPage() {
                     {errors.password && <p className="text-red-500">{errors.password.message}</p>}
                 </div>
 
-                <Button type="submit" disabled={isSubmitting}>
-                    Login
+                {errors.root?.serverError && (
+                    <p style={{ color: "red" }}>{errors.root.serverError.message}</p>
+                )}
+
+                <Button type="submit" disabled={isSubmitting || isLoading}>
+                    {isLoading ? "Logging in..." : "Login"}
                 </Button>
             </form>
 
@@ -100,12 +123,39 @@ function LoginPage() {
 export default LoginPage;
 
 
-/* 
+/*
 
 SARS
 Store, Action, Reducer, Slice (name, initialState, reducers)
 useDispatch
 useSelector
 
-
 */
+
+//console.log({ data, isLoading, isSuccess, isError });
+
+
+/* const handleLogin = async (e: FormEvent) => {
+    e.preventDefault();
+    try {
+        const response = await login({ email, password }).unwrap()
+        console.log('✅ Login successful:', response)
+
+        // Save token to localStorage for future authenticated requests
+        localStorage.setItem('token', response.token)
+        navigate('/home');
+
+        // Optionally redirect user (using React Router, Next.js, etc.)
+        // navigate('/dashboard')
+    } catch (err) {
+        console.error('❌ Login failed:', err)
+    }        
+}; */
+
+/* try {
+        const res = await axiosClient.post('/auth/login', { email, password });
+        localStorage.setItem('token', res.data.token);
+        navigate('/home');
+    } catch (err: any) {
+        console.log(err);
+    } */

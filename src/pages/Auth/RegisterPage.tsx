@@ -5,16 +5,29 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RegisterSchema, type RegisterFormData } from '@/schemas/auth.schema';
 import { Link } from 'react-router-dom';
+import { useRegisterMutation } from '@/redux/api/authApi';
+import { handleFormError } from '@/lib/utils';
 
 export default function RegisterPage() {
 
+    const [signup, { isLoading }] = useRegisterMutation();
+
     // 2. Set up React Hook Form
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
+    const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
         resolver: zodResolver(RegisterSchema),
+        defaultValues: { name: "Manic", email: 'mani1@example.com', password: '123456' }
     });
 
-    const onSubmit = (data: RegisterFormData) => {
+    const onSubmit = async (data: RegisterFormData) => {
         console.log('Form Submitted:', data);
+        try {
+            const response = await signup(data).unwrap()
+            console.log("✅ Register successful:", response);
+
+        } catch (err: unknown) {
+            // Handle server-side validation errors:            
+            handleFormError<RegisterFormData>(err, setError, "root.serverError");
+        }
     };
 
     return (
@@ -26,8 +39,8 @@ export default function RegisterPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
                     <Label htmlFor="username">Username</Label>
-                    <Input id="username" {...register('username')} />
-                    {errors.username && <p className="text-red-500">{errors.username.message}</p>}
+                    <Input id="username" {...register('name')} />
+                    {errors.name && <p className="text-red-500">{errors.name.message}</p>}
                 </div>
 
                 <div>
@@ -42,7 +55,13 @@ export default function RegisterPage() {
                     {errors.password && <p className="text-red-500">{errors.password.message}</p>}
                 </div>
 
-                <Button type="submit" disabled={isSubmitting}>
+
+                {errors.root?.serverError && (
+                    <p style={{ color: "red" }}>{errors.root.serverError.message}</p>
+                )}
+
+
+                <Button type="submit" disabled={isSubmitting || isLoading}>
                     Register
                 </Button>
             </form>
